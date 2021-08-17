@@ -40,10 +40,11 @@ TrafficLightPhase TrafficLight::getCurrentPhase()
 {
     return _currentPhase;
 }
-
+*/
 void TrafficLight::simulate()
 {
     // FP.2b : Finally, the private method „cycleThroughPhases“ should be started in a thread when the public method „simulate“ is called. To do this, use the thread queue in the base class. 
+    threads.emplace_back(std::thread(&TrafficLight::cycleThroughPhases, this));
 }
 
 // virtual function which is executed in a thread
@@ -53,6 +54,25 @@ void TrafficLight::cycleThroughPhases()
     // and toggles the current phase of the traffic light between red and green and sends an update method 
     // to the message queue using move semantics. The cycle duration should be a random value between 4 and 6 seconds. 
     // Also, the while-loop should use std::this_thread::sleep_for to wait 1ms between two cycles. 
+
+     while(true)
+    {
+        for (int i = 0; i<2;++i)
+        {
+            std::random_device rd;  //Will be used to obtain a seed for the random number engine
+            std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+            std::uniform_int_distribution<> distrib(4, 6);
+            std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::seconds(distrib(gen)));
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+
+        //Toggle traffic light
+        std::unique_lock<std::mutex> lck(_mutex);
+        _currentPhase = (_currentPhase == TrafficLightPhase::green) ? TrafficLightPhase::red : TrafficLightPhase::green;
+        //TODO: sends an update method to the message queue using move semantics.
+        lck.unlock();
+
+    } 
 }
 
-*/
